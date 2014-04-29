@@ -3,9 +3,11 @@
  */
 package org.craftercms.web.util;
 
+import org.craftercms.web.helpers.DashboardWidgetHandler;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.*;
@@ -867,7 +869,7 @@ public class CStudioSeleniumUtil {
      */
     public static void openAndSwitchToEditForm(WebDriver webDriver, String editContent, String contentType, String siteName) {
 
-        editContentJS(webDriver,editContent,contentType,siteName);
+        editContentJS(webDriver, editContent, contentType, siteName);
 
         waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
 
@@ -888,7 +890,7 @@ public class CStudioSeleniumUtil {
      */
     public static void moveMouseTo(WebDriver webDriver, By by) {
         WebElement target = webDriver.findElement(by);
-        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,by);
+        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, by);
         CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, by);
         new Actions(webDriver).moveToElement(target).perform();
     }
@@ -1078,6 +1080,158 @@ public class CStudioSeleniumUtil {
 
     }
 
+    /**
+     * Submits the given selected contents to go live now.
+     * @param webDriver the driver
+     */
+    public static void selectAndSubmitContentToGoLiveNow(WebDriver webDriver) {
+
+        int selectedContentsCount = countSelectedCheckboxes(webDriver);
+        assertTrue("No contents selected",selectedContentsCount > 0);
+
+        new WebDriverWait(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT*3).until(new ExpectedCondition<Boolean>() {
+            @Override
+            public Boolean apply(WebDriver webDriver) {
+                try {
+                    logger.info("Click 'Go Live Now'");
+                    CStudioSeleniumUtil.clickOn(webDriver, By.xpath("//a[text()='Go Live Now']"));
+                    return true;
+                } catch (StaleElementReferenceException e) {
+                    return false;
+                }
+            }
+        });
+
+        // this is because the go live popup needs to list the selected items
+        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS*selectedContentsCount);
+
+        //In case a scheduling warning appears select go live now radio button to get the submit to
+        //go live button enabled
+        CStudioSeleniumUtil.clickOn(webDriver,By.id("globalSetToNow"));
+
+        logger.info("Confirm by Clicking 'Go Live'");
+        CStudioSeleniumUtil.clickOn(webDriver, By.id("golivesubmitButton"));
+
+        logger.info("Ok");
+        CStudioSeleniumUtil.clickOn(webDriver, By.cssSelector("#submitPanel input[value='OK']"),
+                TimeConstants.WAITING_SECONDS_WEB_ELEMENT * selectedContentsCount,
+                TimeConstants.WAITING_SECONDS_WEB_ELEMENT * selectedContentsCount);
+
+        // wait for the items to be deployed
+        CStudioSeleniumUtil.waitFor(3*selectedContentsCount);
+
+    }
+
+    /**
+     * Schedules the current dashboard selected contents to go live at the given date and time, (EST time zone).
+     * Ensure the given date and time are after now.
+     * @param webDriver the driver
+     * @param date Date format example: "12/28/2099."
+     * @param time Time format example: "11:59:59 p.m."
+     *
+     */
+    public static void selectAndSubmitContentToGoLiveOnSchedule(WebDriver webDriver, String date, String time) {
+
+        int selectedContentsCount = countSelectedCheckboxes(webDriver);
+
+        assertTrue("No contents selected",selectedContentsCount > 0);
+
+        //driver.manage().window().maximize();
+        new WebDriverWait(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT*3).until(new ExpectedCondition<Boolean>() {
+            @Override
+            public Boolean apply(WebDriver webDriver) {
+                try {
+                    logger.info("Click 'Go Live Now'");
+                    CStudioSeleniumUtil.clickOn(webDriver, By.xpath("//a[text()='Go Live Now']"));
+                    return true;
+                } catch (StaleElementReferenceException e) {
+                    return false;
+                }
+            }
+        });
+
+        // this is because the go live popup needs to list the selected items
+        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS*selectedContentsCount);
+
+        logger.info("Setting date and time fields");
+
+        //enabling scheduling controls
+        CStudioSeleniumUtil.clickOn(webDriver,By.id("globalSetToDateTime"));
+
+        //remove readonly from the datepicker input
+        JavascriptExecutor js = (JavascriptExecutor)webDriver;
+        js.executeScript("document.getElementById('datepicker').readOnly = false");
+
+        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id("datepicker"));
+        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id("datepicker"));
+        WebElement datepicker = webDriver.findElement(By.id("datepicker"));
+
+        try{
+            datepicker.clear();
+            datepicker.sendKeys(date+"\n");
+        }
+        catch(UnhandledAlertException e){
+            Alert alert = webDriver.switchTo().alert(); // (  ) is not a valid date format, please provide a valid time
+            alert.accept();
+            datepicker.clear();
+            datepicker.sendKeys(date+"\n");
+        }
+
+        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
+
+        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id("timepicker"));
+        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id("timepicker"));
+        WebElement timepicker = webDriver.findElement(By.id("timepicker"));
+
+        try{
+            timepicker.clear();
+            timepicker.sendKeys(time+"\n");
+        }
+        catch(UnhandledAlertException e){
+            Alert alert = webDriver.switchTo().alert(); // (  ) is not a valid time format, please provide a valid time
+            alert.accept();
+            timepicker.clear();
+            timepicker.sendKeys(time+"\n");
+        }
+
+        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
+
+        logger.info("Confirm Schedule");
+        CStudioSeleniumUtil.clickOn(webDriver, By.id("golivesubmitButton"));
+
+        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
+        CStudioSeleniumUtil.clickOn(webDriver, By.id("acnOKButton"),
+                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*selectedContentsCount,
+                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*selectedContentsCount);
+
+        logger.info("Waiting for item to get scheduled...");
+        // wait for the items to be scheduled
+        CStudioSeleniumUtil.waitFor(selectedContentsCount);
+
+    }
+
+    /**
+     * Counts selected checkboxes
+     * @param webDriver driver
+     * @return selected checkboxes count
+     */
+    public static int countSelectedCheckboxes(WebDriver webDriver){
+        logger.info("Counting selected checkboxes");
+        int selectedCount = 0;
+        By inputsBy = By.xpath("//input[@type='checkbox']");
+        List<WebElement> inputs = webDriver.findElements(inputsBy);
+
+        for(WebElement input : inputs){
+            if(input.isSelected()){
+                selectedCount++;
+            }
+        }
+
+        logger.info(String.format("selected count:%d", selectedCount));
+
+        return selectedCount;
+
+    }
 
 
 

@@ -73,7 +73,9 @@ public class DashboardWidgetHandler {
 
             if(!inputElements.isEmpty()){
                 for(WebElement inputElement : inputElements){
-                    CStudioSeleniumUtil.javascriptClick(webDriver, inputElement);
+                    if(!inputElement.isSelected()){
+                        CStudioSeleniumUtil.javascriptClick(webDriver, inputElement);
+                    }
                 }
             }
 
@@ -251,7 +253,7 @@ public class DashboardWidgetHandler {
             inputElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']//input["+inputsContainsIdXpathOr+"]");
             inputElements = webDriver.findElements(inputElementsBy);
 
-            if(contentsUris.length == inputElements.size()){
+            if(inputElements.size() >= contentsUris.length){
                 containsContents = true;
             }
 

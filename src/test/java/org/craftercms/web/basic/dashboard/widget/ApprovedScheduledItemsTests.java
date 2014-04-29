@@ -83,7 +83,8 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
         checkContentAppearsInWidget(myRecentActivityWidgetHandler, componentToEditUri);
 
         logger.info("Select edited page, component and image, click 'Go Live Now' and schedule them to go live on a future date");
-        scheduleContentGoLive(new String[]{pageToEditUri, componentToEditUri, imageUri}, "11:55:59 p.m.");
+        selectAndSubmitContentToGoLiveOnSchedule(myRecentActivityWidgetHandler, new String[]{pageToEditUri, componentToEditUri, imageUri}, "12/12/2099", "11:55:59 p.m.");
+        //scheduleContentGoLive(new String[]{pageToEditUri, componentToEditUri, imageUri}, "11:55:59 p.m.");
 
         logger.info("Refresh dashboard");
         CStudioSeleniumUtil.refreshAndWaitForPageToLoad(driver);
@@ -103,7 +104,8 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Select edited template, click 'Go Live Now' and schedule it to go live on a future date (other than the previews one");
-        scheduleContentGoLive(new String[]{templateToEditUri}, "11:59:59 p.m.");
+        //scheduleContentGoLive(new String[]{templateToEditUri}, "11:59:59 p.m.");
+        selectAndSubmitContentToGoLiveOnSchedule(myRecentActivityWidgetHandler, new String[]{templateToEditUri}, "12/12/2099", "11:59:59 p.m.");
 
         logger.info("Check only pages appear in Approved Scheduled Items");
         assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingPagesOnly(driver));
@@ -221,87 +223,6 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
 
         CStudioSeleniumUtil.clickOn(driver, By.id("template-editor-update-button"));
         CStudioSeleniumUtil.waitForCurrentPageToLoad(driver);
-
-    }
-
-    //TODO scheduling and making content go live should be independent methods at some moment, maybe static methods in CStudioSeleniumUtil or in a base test
-    /**
-     * Schedules the given uris to go live today at the given time.
-     * @param uris content uris to be scheduled
-     * @param timePickerTime Time format example: "11:59:59 p.m."
-     */
-    private void scheduleContentGoLive(String[] uris, String timePickerTime) {
-
-        driver.manage().window().maximize();
-        myRecentActivityWidgetHandler.selectContents(driver,uris);
-
-        driver.manage().window().maximize();
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT*3).until(new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver webDriver) {
-                try{
-                    logger.info("Click 'Go Live Now'");
-                    CStudioSeleniumUtil.clickOn(driver,By.xpath("//a[text()='Go Live Now']"));
-                    return true;
-                }
-                catch (StaleElementReferenceException e){
-                    return false;
-                }
-            }
-        });
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
-
-        logger.info("Setting date and time fields");
-
-        //enabling scheduling controls
-        CStudioSeleniumUtil.clickOn(driver,By.id("globalSetToDateTime"));
-
-
-        //TODO expand this approach to other methods
-        //remove readonly from the datepicker input
-        JavascriptExecutor js = (JavascriptExecutor)driver;
-        js.executeScript("document.getElementById('datepicker').readOnly = false");
-
-        CStudioSeleniumUtil.waitForItemToDisplay(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id("datepicker"));
-        CStudioSeleniumUtil.waitForItemToBeEnabled(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id("datepicker"));
-        WebElement datepicker = driver.findElement(By.id("datepicker"));
-
-        try{
-            datepicker.clear();
-            datepicker.sendKeys("12/12/2099\n"); // Ensure time is after now.
-        }
-        catch(UnhandledAlertException e){
-            Alert alert = driver.switchTo().alert(); // (  ) is not a valid date format, please provide a valid time
-            alert.accept();
-            datepicker.clear();
-            datepicker.sendKeys("12/12/2121\n"); // Ensure time is after now.
-        }
-
-        CStudioSeleniumUtil.waitForItemToDisplay(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id("timepicker"));
-        CStudioSeleniumUtil.waitForItemToBeEnabled(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id("timepicker"));
-        WebElement timepicker = driver.findElement(By.id("timepicker"));
-
-        try{
-            timepicker.clear();
-            timepicker.sendKeys(timePickerTime+"\n"); // Ensure time is after now.
-        }
-        catch(UnhandledAlertException e){
-            Alert alert = driver.switchTo().alert(); // (  ) is not a valid time format, please provide a valid time
-            alert.accept();
-            timepicker.clear();
-            timepicker.sendKeys(timePickerTime+"\n"); // Ensure time is after now.
-        }
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
-
-        logger.info("Confirm Schedule");
-        CStudioSeleniumUtil.clickOn(driver, By.id("golivesubmitButton"));
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
-        CStudioSeleniumUtil.clickOn(driver, By.id("acnOKButton"));
-
-        logger.info("Waiting for item to get scheduled...");
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_DEPLOY);
 
     }
 

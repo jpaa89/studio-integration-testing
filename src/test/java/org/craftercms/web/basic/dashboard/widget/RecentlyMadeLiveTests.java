@@ -6,11 +6,7 @@ import org.craftercms.web.util.CStudioSeleniumUtil;
 import org.craftercms.web.util.TimeConstants;
 import org.junit.Test;
 import org.openqa.selenium.By;
-import org.openqa.selenium.StaleElementReferenceException;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -66,7 +62,9 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Make content go live");
-        makeContentGoLive(articlesAndToutsUris);
+        myRecentActivityWidgetHandler.filterByAll(driver);
+        selectAndSubmitContentToGoLiveNow(myRecentActivityWidgetHandler, articlesAndToutsUris);
+        //makeContentGoLive(articlesAndToutsUris);
 
         logger.info("Refresh dashboard");
         CStudioSeleniumUtil.refreshAndWaitForPageToLoad(driver);
@@ -168,59 +166,6 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         String toutHeadline = "This is a selenium recently made live test";
         return CStudioSeleniumUtil.createTautsWithinPath(driver,number,path,toutUrlPrefix,toutInternalNamePrefix,toutHeadline,siteName);
     }
-
-
-    /**
-     * Submits the given contents to go live now.
-     * @param uris the content uris
-     */
-    private void makeContentGoLive(final String[] uris) {
-
-        myRecentActivityWidgetHandler.filterByAll(driver);
-
-        myRecentActivityWidgetHandler.selectContents(driver, uris);
-
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length*5).until(new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver webDriver) {
-                try{
-                    logger.info("Click 'Go Live Now'");
-                    CStudioSeleniumUtil.clickOn(driver,By.xpath("//a[text()='Go Live Now']"),
-                            TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length,
-                            TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length);
-                    return true;
-                }
-                catch (StaleElementReferenceException e){
-                    return false;
-                }
-            }
-        });
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
-
-        //In case a scheduling warning appears
-        CStudioSeleniumUtil.clickOn(driver,By.id("globalSetToNow"));
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
-
-        logger.info("Confirm by Clicking 'Go Live'");
-        CStudioSeleniumUtil.clickOn(driver, By.id("golivesubmitButton"),
-                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length,
-                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length);
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
-
-        logger.info("Ok");
-        CStudioSeleniumUtil.clickOn(driver, By.cssSelector("#submitPanel input[value='OK']"),
-                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length,
-                TimeConstants.WAITING_SECONDS_WEB_ELEMENT*uris.length);
-
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_DEPLOY*3);
-
-    }
-
-
-
 
 
 }

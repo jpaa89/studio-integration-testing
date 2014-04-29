@@ -114,7 +114,8 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         assertTrue(myRecentActivityWidgetHandler.containsContent(driver, toutUri));
 
         logger.info("Select the article page, click 'Submit to Go Live' and then 'Submit'");
-        selectAndSubmitToGoLive(articleUri);
+        selectAndSubmitContentToGoLiveNow(myRecentActivityWidgetHandler, new String[]{articleUri});
+        //selectAndSubmitToGoLive(articleUri);
 
         logger.info("Click 'Hide Live Items'");
         CStudioSeleniumUtil.clickOn(driver, By.id("widget-expand-state-MyRecentActivity"));
@@ -192,44 +193,6 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         By liveSpanElementsBy = By.xpath("tr[not(@class='avoid')]/td[1]/div[1]/div[1]/span[normalize-space(@class)='status-icon floating']");
         List<WebElement> liveElements = myRecentActivityElement.findElements(liveSpanElementsBy);
         assertTrue(liveElements.isEmpty());
-    }
-
-    /**
-     * Selects the article uri within My recent Activity and submits it to go live now
-     * @param articleUri the articleUri
-     */
-    private void selectAndSubmitToGoLive(String articleUri) {
-
-        myRecentActivityWidgetHandler.selectContents(driver,new String[]{articleUri});
-
-        driver.manage().window().maximize();
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(new ExpectedCondition<Boolean>() {
-            @Override
-            public Boolean apply(WebDriver webDriver) {
-                try{
-                    logger.info("Click 'Go Live Now'");
-                    CStudioSeleniumUtil.clickOn(driver,By.xpath("//a[text()='Go Live Now']"));
-                    return true;
-                }
-                catch (StaleElementReferenceException e){
-                    return false;
-                }
-            }
-        });
-
-        //In case a scheduling warning appears
-        CStudioSeleniumUtil.clickOn(driver,By.id("globalSetToNow"));
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_JAVASCRIPT_TASKS);
-
-        CStudioSeleniumUtil.clickOn(driver, By.id("golivesubmitButton"));
-
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
-
-        CStudioSeleniumUtil.clickOn(driver, By.id("acnOKButton"));
-
-        CStudioSeleniumUtil.waitForCurrentPageToLoad(driver);
-
     }
 
     /**
