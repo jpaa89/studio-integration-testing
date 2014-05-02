@@ -27,7 +27,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        recentlyMadeLiveWidgetHandler = new DashboardWidgetHandler("recentlyMadeLive");
+        recentlyMadeLiveWidgetHandler = new DashboardWidgetHandler(driver, "recentlyMadeLive");
     }
 
     /**
@@ -62,7 +62,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Make content go live");
-        myRecentActivityWidgetHandler.filterByAll(driver);
+        myRecentActivityWidgetHandler.filterByAll();
         selectAndSubmitContentToGoLiveNow(myRecentActivityWidgetHandler, articlesAndToutsUris);
         //makeContentGoLive(articlesAndToutsUris);
 
@@ -71,53 +71,53 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Check only pages are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingPagesOnly(driver));
+        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingPagesOnly());
 
         logger.info("Check the created articles are shown in RML ");
-        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(driver, articlesUris));
+        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(articlesUris));
 
         logger.info("Change view option to 'Components' in RML");
-        recentlyMadeLiveWidgetHandler.filterByComponents(driver);
+        recentlyMadeLiveWidgetHandler.filterByComponents();
 
         logger.info("Check the created touts are shown in RML ");
-        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(driver,toutsUris));
+        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(toutsUris));
 
         logger.info("Check only components are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingComponentsOnly(driver));
+        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingComponentsOnly());
 
         logger.info("Change view option to 'Documents' in RML");
-        recentlyMadeLiveWidgetHandler.filterByDocuments(driver);
+        recentlyMadeLiveWidgetHandler.filterByDocuments();
 
         logger.info("Check no items are shown in RML");
-        assertFalse(recentlyMadeLiveWidgetHandler.hasContents(driver));
+        assertFalse(recentlyMadeLiveWidgetHandler.hasContents());
 
         logger.info("Change view option to 'All' in RML");
-        recentlyMadeLiveWidgetHandler.filterByAll(driver);
+        recentlyMadeLiveWidgetHandler.filterByAll();
 
         logger.info("Check multiple content kinds are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingMultipleKindsOfContents(driver));
+        assertTrue(recentlyMadeLiveWidgetHandler.isDisplayingMultipleKindsOfContents());
 
         logger.info("Check the created articles and touts are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(driver, articlesUris));
-        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(driver, toutsUris));
+        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(articlesUris));
+        assertTrue(recentlyMadeLiveWidgetHandler.containsContents(toutsUris));
 
         logger.info("Enter 2 in the show box in RML");
-        recentlyMadeLiveWidgetHandler.changeShowNumber(driver,2);
+        recentlyMadeLiveWidgetHandler.changeShowNumber(2);
 
         logger.info("Check only 2 items are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.countContents(driver) == 2);
+        assertTrue(recentlyMadeLiveWidgetHandler.countContents() == 2);
 
         logger.info("Enter 10 in the show box in RML");
-        recentlyMadeLiveWidgetHandler.changeShowNumber(driver,10);
+        recentlyMadeLiveWidgetHandler.changeShowNumber(10);
 
         logger.info("Check only 10 items are shown in RML");
-        assertTrue(recentlyMadeLiveWidgetHandler.countContents(driver) == 10);
+        assertTrue(recentlyMadeLiveWidgetHandler.countContents() == 10);
 
         logger.info("Click collapse/expand All' all in RML");
         CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-"+recentlyMadeLiveWidgetHandler.getId()));
 
         logger.info("Check all items are hidden");
-        recentlyMadeLiveWidgetHandler.contentsAreHidden(driver);
+        recentlyMadeLiveWidgetHandler.contentsAreHidden();
 
         logger.info("Check icon changed to '+'");
         iconSpanElements = driver.findElements(iconSpanBy);
@@ -129,7 +129,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-" + recentlyMadeLiveWidgetHandler.getId()));
 
         logger.info("Check all (10) items are visible");
-        assertTrue(recentlyMadeLiveWidgetHandler.countContents(driver) == 10);
+        assertTrue(recentlyMadeLiveWidgetHandler.countContents() == 10);
 
         logger.info("Check icon changed to '-'");
         iconSpanElements = driver.findElements(iconSpanBy);

@@ -29,7 +29,7 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        approvedScheduledItemsWidgetHandler = new DashboardWidgetHandler("approvedScheduledItems");
+        approvedScheduledItemsWidgetHandler = new DashboardWidgetHandler(driver, "approvedScheduledItems");
     }
 
     /**
@@ -71,7 +71,7 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Change My Recent Activity View to 'All'");
-        myRecentActivityWidgetHandler.filterByAll(driver);
+        myRecentActivityWidgetHandler.filterByAll();
 
         logger.info("Check edited page appears in My Recent Activity");
         checkContentAppearsInWidget(myRecentActivityWidgetHandler, pageToEditUri);
@@ -91,7 +91,7 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Check only pages appear in Approved Scheduled Items");
-        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingPagesOnly(driver));
+        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingPagesOnly());
 
         logger.info("Check the edited page appears in the Approved Scheduled Items");
         checkContentAppearsInWidget(approvedScheduledItemsWidgetHandler, pageToEditUri);
@@ -108,25 +108,25 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
         selectAndSubmitContentToGoLiveOnSchedule(myRecentActivityWidgetHandler, new String[]{templateToEditUri}, "12/12/2099", "11:59:59 p.m.");
 
         logger.info("Check only pages appear in Approved Scheduled Items");
-        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingPagesOnly(driver));
+        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingPagesOnly());
 
         logger.info("Change Approved Scheduled Items View to 'Components'");
-        approvedScheduledItemsWidgetHandler.filterByComponents(driver);
+        approvedScheduledItemsWidgetHandler.filterByComponents();
 
         logger.info("Check only components appear in Approved Scheduled Items");
-        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingComponentsOnly(driver));
+        assertTrue(approvedScheduledItemsWidgetHandler.isDisplayingComponentsOnly());
 
         logger.info("Check the edited component appears in the Approved Scheduled Items");
         checkContentAppearsInWidget(approvedScheduledItemsWidgetHandler, componentToEditUri);
 
         logger.info("Change Approved Scheduled Items View to 'Documents'");
-        approvedScheduledItemsWidgetHandler.filterByDocuments(driver);
+        approvedScheduledItemsWidgetHandler.filterByDocuments();
 
         logger.info("Check no items are shown in Approved Scheduled Items");
-        assertFalse(approvedScheduledItemsWidgetHandler.hasContents(driver));
+        assertFalse(approvedScheduledItemsWidgetHandler.hasContents());
 
         logger.info("Change Approved Scheduled Items View to 'ALL'");
-        approvedScheduledItemsWidgetHandler.filterByAll(driver);
+        approvedScheduledItemsWidgetHandler.filterByAll();
 
         logger.info("Check the edited page, the image, the component and template appear in the Approved Scheduled Items");
         checkContentsAppearsInWidget(approvedScheduledItemsWidgetHandler, new String[]{pageToEditUri,componentToEditUri,imageUri,templateToEditUri});
@@ -140,7 +140,7 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
      * @param contentUris contents uris to check
      */
     private void checkContentsAppearsInWidget(DashboardWidgetHandler dashboardWidgetHandler, String[] contentUris){
-        assertTrue(dashboardWidgetHandler.containsContents(driver, contentUris));
+        assertTrue(dashboardWidgetHandler.containsContents(contentUris));
     }
 
     /**
@@ -149,7 +149,7 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
      * @param contentUri contents uri to check
      */
     private void checkContentAppearsInWidget(DashboardWidgetHandler dashboardWidgetHandler, String contentUri){
-        assertTrue(dashboardWidgetHandler.containsContent(driver, contentUri));
+        assertTrue(dashboardWidgetHandler.containsContent(contentUri));
     }
 
     /**

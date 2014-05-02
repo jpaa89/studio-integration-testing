@@ -18,24 +18,11 @@ public class DashboardWidgetTestsBase extends BaseTest {
 
     protected DashboardWidgetHandler myRecentActivityWidgetHandler;
 
-    /**
-     * Selects and submits the given contents to go live now.
-     * Warning: Be careful, other selected contents within the dashboard will affect this method (they will also be
-     * submitted to go live or will hide the Go live option from the context nav if they are not suitable to go live.
-     * @param dashboardWidgetHandler the dashboard widget to select the contents from
-     * @param contentUris the content uris
-     */
-    protected void selectAndSubmitContentToGoLiveNow(DashboardWidgetHandler dashboardWidgetHandler, final String[] contentUris) {
-        dashboardWidgetHandler.selectContents(driver,contentUris);
-        CStudioSeleniumUtil.selectAndSubmitContentToGoLiveNow(driver);
-    }
-
-
     @Override
     public void setUp() throws Exception {
         super.setUp();
         driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
-        myRecentActivityWidgetHandler = new DashboardWidgetHandler("MyRecentActivity");
+        myRecentActivityWidgetHandler = new DashboardWidgetHandler(driver,"MyRecentActivity");
     }
 
     public void useAuthorUser() {
@@ -60,8 +47,20 @@ public class DashboardWidgetTestsBase extends BaseTest {
      *
      */
     protected void selectAndSubmitContentToGoLiveOnSchedule(DashboardWidgetHandler dashboardWidgetHandler, final String[] contentUris, String date, String time) {
-        dashboardWidgetHandler.selectContents(driver,contentUris);
+        dashboardWidgetHandler.selectContents(contentUris);
         CStudioSeleniumUtil.selectAndSubmitContentToGoLiveOnSchedule(driver, date, time);
+    }
+
+    /**
+     * Selects and submits the given contents to go live now.
+     * Warning: Be careful, other selected contents within the dashboard will affect this method (they will also be
+     * submitted to go live or will hide the Go live option from the context nav if they are not suitable to go live.
+     * @param dashboardWidgetHandler the dashboard widget to select the contents from
+     * @param contentUris the content uris
+     */
+    protected void selectAndSubmitContentToGoLiveNow(DashboardWidgetHandler dashboardWidgetHandler, final String[] contentUris) {
+        dashboardWidgetHandler.selectContents(contentUris);
+        CStudioSeleniumUtil.selectAndSubmitContentToGoLiveNow(driver);
     }
 
 

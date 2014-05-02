@@ -147,7 +147,7 @@ public class PageEditTests extends BaseTest {
     public void testPageSaveAndPreviewMyRecentActivity() throws ParseException {
         driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
 
-        DashboardWidgetHandler myRecentActivityHandler = new DashboardWidgetHandler("MyRecentActivity");
+        DashboardWidgetHandler myRecentActivityHandler = new DashboardWidgetHandler(driver, "MyRecentActivity");
         String updateStringBody1 = updateString+ " (1)";
         String updateStringBody2 = updateString+ " (2)";
         String updateStringBody3 = updateString+ " (3)";
@@ -217,11 +217,11 @@ public class PageEditTests extends BaseTest {
         CStudioSeleniumUtil.navigateToAndWaitForPageToLoad(driver,dashboardUrl);
 
         logger.info(" Check edited page appears as 'in progress' in My Recent Activity with latest timestamp." );
-        DashboardWidgetContentInfo mraWidgetEditedPageContentInfo = myRecentActivityHandler.dashboardWidgetContentInfo(driver, editPageUri);
+        DashboardWidgetContentInfo mraWidgetEditedPageContentInfo = myRecentActivityHandler.dashboardWidgetContentInfo(editPageUri);
         String timestampFirstEdit = myRecentActivityMyLastEdit(editPageUri);
         assertFalse(timestampFirstEdit.isEmpty());
         assertEquals(DashboardWidgetContentInfo.STATUS_IN_PROGRESS, mraWidgetEditedPageContentInfo.getStatus());
-        assertTrue(myRecentActivityHandler.containsContent(driver, editPageUri));
+        assertTrue(myRecentActivityHandler.containsContent(editPageUri));
 
         logger.info("Edit body field (2)");
         driver.switchTo().window(editWindowHandle);

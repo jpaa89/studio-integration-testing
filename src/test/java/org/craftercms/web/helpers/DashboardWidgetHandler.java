@@ -35,14 +35,24 @@ public class DashboardWidgetHandler {
         }
     }
 
-    protected String id;
+    protected String id; // This could be replaced with subclasses soon
+    protected WebDriver webDriver;
 
     /**
      * Creates a dashboard widget handler that will use the given id to perform ui and content interactions
      * @param id the id of the dashboard widget div
      */
-    public DashboardWidgetHandler(String id){
+    public DashboardWidgetHandler(WebDriver webDriver, String id){
+        this.webDriver = webDriver;
         this.id=id;
+    }
+
+    public WebDriver getWebDriver() {
+        return webDriver;
+    }
+
+    public void setWebDriver(WebDriver webDriver) {
+        this.webDriver = webDriver;
     }
 
     public String getId() {
@@ -51,11 +61,10 @@ public class DashboardWidgetHandler {
 
     /**
      * Selects (clicks the item checkbox) the specified contents
-     * @param webDriver driver
      * @param contentUris contents uris
      */
-    public void selectContents(WebDriver webDriver, String[] contentUris) {
-        checkCurrentPageIsDashboardPage(webDriver);
+    public void selectContents(String[] contentUris) {
+        checkCurrentPageIsDashboardPage();
 
         if(contentUris.length > 0){
 
@@ -84,12 +93,11 @@ public class DashboardWidgetHandler {
 
     /**
      * Changes the number of shown items (show input)
-     * @param webDriver driver
      * @param numberOfContentItemsToShow number of items to show
      */
-    public void changeShowNumber(WebDriver webDriver, int numberOfContentItemsToShow) {
+    public void changeShowNumber(int numberOfContentItemsToShow) {
 
-        checkCurrentPageIsDashboardPage(webDriver);
+        checkCurrentPageIsDashboardPage();
 
         // Element whose future staleness will help detect the widget has effectively changed
         final WebElement widgetTbody = webDriver.findElement(By.id(id + "-tbody"));
@@ -122,77 +130,69 @@ public class DashboardWidgetHandler {
 
     /**
      * Filter contents by pages
-     * @param webDriver driver
      */
-    public void filterByPages(WebDriver webDriver) {
-        changeFilter(webDriver,"Pages");
+    public void filterByPages() {
+        changeFilter("Pages");
     }
 
     /**
      * Filter contents by components
-     * @param webDriver driver
      */
-    public void filterByComponents(WebDriver webDriver) {
-        changeFilter(webDriver,"Components");
+    public void filterByComponents() {
+        changeFilter("Components");
     }
 
     /**
      * Filter contents by documents
-     * @param webDriver driver
      */
-    public void filterByDocuments(WebDriver webDriver) {
-        changeFilter(webDriver,"Documents");
+    public void filterByDocuments() {
+        changeFilter("Documents");
     }
 
     /**
      * Filter contents by all
-     * @param webDriver driver
      */
-    public void filterByAll(WebDriver webDriver) {
-        changeFilter(webDriver,"All");
+    public void filterByAll() {
+        changeFilter("All");
     }
 
     /**
      * Checks if only pages are being displayed
-     * @param webDriver driver
      * @return true if displays Pages only
      */
-    public boolean isDisplayingPagesOnly(WebDriver webDriver) {
-        return displaysOnlyContentsOfKind(webDriver, DashboardWidgetContentInfo.KIND_PAGE);
+    public boolean isDisplayingPagesOnly() {
+        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_PAGE);
     }
 
     /**
      * Checks if only components are being displayed
-     * @param webDriver driver
      * @return true if displays Components only
      */
-    public boolean isDisplayingComponentsOnly(WebDriver webDriver) {
-        return displaysOnlyContentsOfKind(webDriver, DashboardWidgetContentInfo.KIND_COMPONENT);
+    public boolean isDisplayingComponentsOnly() {
+        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_COMPONENT);
     }
 
     /**
      * Checks if only documents are being displayed
-     * @param webDriver driver
      * @return true if displays Documents only
      */
-    public boolean isDisplayingDocumentsOnly(WebDriver webDriver) {
-        return displaysOnlyContentsOfKind(webDriver, DashboardWidgetContentInfo.KIND_DOCUMENT);
+    public boolean isDisplayingDocumentsOnly() {
+        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_DOCUMENT);
     }
 
     /**
      * Checks if many kinds of contents are being displayed.
      * Important: Ignores level descriptors by checking using contains("Section Defaults").
-     * @param webDriver driver
      * @return true if displays more than one kind of item
      */
-    public boolean isDisplayingMultipleKindsOfContents(WebDriver webDriver) {
+    public boolean isDisplayingMultipleKindsOfContents() {
 
         DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray;
         String lastKind = "";
         String currentKind;
         boolean multipleKinds = false;
 
-        dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo(webDriver);
+        dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo();
 
         if(dashboardWidgetContentInfoArray != null && dashboardWidgetContentInfoArray.length > 1) {
 
@@ -230,12 +230,11 @@ public class DashboardWidgetHandler {
      * Checks if the widget contains the specified contents. This method looks for the contents withing the widget html
      * in its current mode -meaning that the number of shown items and the filter dictate the total amount
      * of possible existing of items-)
-     * @param webDriver the driver
      * @param contentsUris contents uris to check
      */
-    public boolean containsContents(WebDriver webDriver, String[] contentsUris) {
+    public boolean containsContents(String[] contentsUris) {
 
-        checkCurrentPageIsDashboardPage(webDriver);
+        checkCurrentPageIsDashboardPage();
 
         By inputElementsBy;
         List<WebElement> inputElements;
@@ -266,20 +265,18 @@ public class DashboardWidgetHandler {
      * Checks if the widget contains the specified content. This method looks for the content withing the widget html
      * in its current mode -meaning that the number of shown items and the filter dictate the total amount
      * of possible existing of items-)
-     * @param webDriver driver
      * @param contentUri content uri to check
      * @return true if the widget contains the content/item
      */
-    public boolean containsContent(WebDriver webDriver, String contentUri) {
-        return  containsContents(webDriver,new String[]{contentUri});
+    public boolean containsContent(String contentUri) {
+        return  containsContents(new String[]{contentUri});
     }
 
     /**
      * Checks if all the contents are hidden (however they should exist within the html for them to be hidden)
-     * @param webDriver driver
      * @return true if all the contents are hidden
      */
-    public boolean contentsAreHidden(WebDriver webDriver) {
+    public boolean contentsAreHidden() {
         boolean contentsHidden = true;
         By inputElementsBy = By.xpath("//tbody[@id='"+id+"']//tr[contains(@class,'wcm-table-parent')]");
         List<WebElement> trElements = webDriver.findElements(inputElementsBy);
@@ -312,32 +309,29 @@ public class DashboardWidgetHandler {
      * Checks if there are any elements within the widget. This method looks for the content withing the widget html
      * in its current mode -meaning that the number of shown items and the filter dictate the total amount
      * of possible existing of items-)
-     * @param webDriver driver
      * @return true if the widget has any elements
      */
-    public boolean hasContents(WebDriver webDriver){
-        return countContents(webDriver) > 0;
+    public boolean hasContents(){
+        return countContents() > 0;
     }
 
     /**
      * Counts the contents of this widget. This method looks for the content withing the widget html
      * in its current mode -meaning that the number of shown items and the filter dictate the total amount
      * of possible existing of items-).
-     * @param webDriver driver
      * @return contents count
      */
-    public int countContents(WebDriver webDriver) {
-        checkCurrentPageIsDashboardPage(webDriver);
+    public int countContents() {
+        checkCurrentPageIsDashboardPage();
         By inputElementsBy = By.xpath("//tbody[@id='" + id + "-tbody']//input");
         return  webDriver.findElements(inputElementsBy).size();
     }
 
     /**
      * Returns an array containing the labels information of all the existing contents.
-     * @param webDriver driver
      * @return all the labels/contents information of all the existing contents
      */
-    public DashboardWidgetContentInfo[] dashboardWidgetContentsInfo(WebDriver webDriver) {
+    public DashboardWidgetContentInfo[] dashboardWidgetContentsInfo() {
 
         By spanElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[1]]");
         final List<WebElement> spanElements = webDriver.findElements(spanElementsBy) ;
@@ -422,11 +416,10 @@ public class DashboardWidgetHandler {
 
     /**
      * Returns the label/content information for the given content
-     * @param webDriver driver
      * @param contentUri the content uri
      * @return the label/content information for the given content uri
      */
-    public DashboardWidgetContentInfo dashboardWidgetContentInfo(WebDriver webDriver, String contentUri) {
+    public DashboardWidgetContentInfo dashboardWidgetContentInfo(String contentUri) {
 
         By spanElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[contains(@id,'"+contentUri+"') and position() = 1]]");
         final List<WebElement> spanElements = webDriver.findElements(spanElementsBy) ;
@@ -524,9 +517,8 @@ public class DashboardWidgetHandler {
 
     /**
      * Checks the current driver url equals the dashboard url
-     * @param webDriver driver
      */
-    protected void checkCurrentPageIsDashboardPage(WebDriver webDriver) {
+    protected void checkCurrentPageIsDashboardPage() {
         String siteName = seleniumProperties.getProperty("craftercms.sitename");
         String dashboardUrl = String.format(seleniumProperties.getProperty("craftercms.site.dashboard.url"), siteName);
 
@@ -537,12 +529,11 @@ public class DashboardWidgetHandler {
 
     /**
      * Change the widget filter
-     * @param webDriver driver
      * @param filter kind of content to filter by
      */
-    protected void changeFilter(WebDriver webDriver, String filter) {
+    protected void changeFilter(String filter) {
         // Element whose future staleness will help detect the widget has effectively changed
-        checkCurrentPageIsDashboardPage(webDriver);
+        checkCurrentPageIsDashboardPage();
 
         final WebElement widgetTbody = webDriver.findElement(By.id(id + "-tbody"));
 
@@ -569,14 +560,13 @@ public class DashboardWidgetHandler {
     /**
      * Check if only contents of the matching kind are being displayed.
      * Important: Ignores level descriptors by checking using contains("Section Defaults").
-     * @param webDriver driver
      * @param kind kind of content
      * @return true if only contents of the matching kind are being displayed
      */
-    protected boolean displaysOnlyContentsOfKind(WebDriver webDriver, String kind) {
+    protected boolean displaysOnlyContentsOfKind(String kind) {
         boolean sameKind = true;
 
-        DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo(webDriver);
+        DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo();
 
         if(dashboardWidgetContentInfoArray != null) {
             for (DashboardWidgetContentInfo aDashboardWidgetContentInfo : dashboardWidgetContentInfoArray) {

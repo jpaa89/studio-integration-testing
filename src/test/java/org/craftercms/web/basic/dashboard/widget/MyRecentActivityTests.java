@@ -66,7 +66,7 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.refreshAndWaitForPageToLoad(driver);
 
         logger.info("Check the article appears 'My Recent Activity'");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, articleUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(articleUri));
         articleCreatedTimestamp = myRecentActivityMyLastEdit(articleUri);
 
         logger.info("Waiting 1 minute before editing the article (so the timestamp changes) ");
@@ -76,7 +76,7 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         editArticleUploadImageToContent(articleUri, imageToUploadPath);
 
         logger.info("Check the article appears 'My Recent Activity' dashboard widget with a different timestamp");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, articleUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(articleUri));
         articleEditedTimestamp = myRecentActivityMyLastEdit(articleUri);
         assertFalse(articleCreatedTimestamp.equals(articleEditedTimestamp));
 
@@ -84,34 +84,34 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.editAndSaveComponent(driver, toutUri, toutUpdateString);
 
         logger.info("Check the component doesn't appear in 'My Recent Activity'");
-        assertFalse(myRecentActivityWidgetHandler.containsContent(driver, toutUri));
+        assertFalse(myRecentActivityWidgetHandler.containsContent(toutUri));
 
         logger.info("Edit template");
         editTemplate(templateUri);
 
         logger.info("Check edited template doesn't appear in 'My Recent Activity'");
-        assertFalse(myRecentActivityWidgetHandler.containsContent(driver, templateUri));
+        assertFalse(myRecentActivityWidgetHandler.containsContent(templateUri));
 
         logger.info("Change the view option to 'Components' in 'My Recent Activity'");
-        myRecentActivityWidgetHandler.filterByComponents(driver);
+        myRecentActivityWidgetHandler.filterByComponents();
 
         logger.info("Check the component appears in 'My Recent Activity'");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, toutUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(toutUri));
 
         logger.info("Change the view option to 'Documents' in 'My Recent Activity'");
-        myRecentActivityWidgetHandler.filterByDocuments(driver);
+        myRecentActivityWidgetHandler.filterByDocuments();
 
         logger.info("Check no items appear in 'My Recent Activity'");
-        assertFalse(myRecentActivityWidgetHandler.hasContents(driver));
+        assertFalse(myRecentActivityWidgetHandler.hasContents());
 
         logger.info("Change the view option to 'ALl' in 'My Recent Activity'");
-        myRecentActivityWidgetHandler.filterByAll(driver);
+        myRecentActivityWidgetHandler.filterByAll();
 
         logger.info("Check the article image appears in 'My Recent Activity'");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, articleImageUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(articleImageUri));
 
         logger.info("Check the component appears in 'My Recent Activity'");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, toutUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(toutUri));
 
         logger.info("Select the article page, click 'Submit to Go Live' and then 'Submit'");
         selectAndSubmitContentToGoLiveNow(myRecentActivityWidgetHandler, new String[]{articleUri});
@@ -128,10 +128,10 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         checkNoLiveItemsAppearInMyRecentActivity();
 
         logger.info("Enter 2 in the Show box and press enter");
-        myRecentActivityWidgetHandler.changeShowNumber(driver,2);
+        myRecentActivityWidgetHandler.changeShowNumber(2);
 
         logger.info("Check only 2 items appear in MRA");
-        assertTrue(myRecentActivityWidgetHandler.countContents(driver) == 2);
+        assertTrue(myRecentActivityWidgetHandler.countContents() == 2);
 
         logger.info("Click 'Show Live Items'");
         CStudioSeleniumUtil.clickOn(driver, By.id("widget-expand-state-MyRecentActivity"));
@@ -150,7 +150,7 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         editArticleUploadImageToContent(articleUri, imageToUploadPath);
 
         logger.info("Check the article appears in MRA");
-        assertTrue(myRecentActivityWidgetHandler.containsContent(driver, articleUri));
+        assertTrue(myRecentActivityWidgetHandler.containsContent(articleUri));
 
         logger.info("logout");
         logout();
@@ -163,7 +163,7 @@ public class MyRecentActivityTests extends DashboardWidgetTestsBase {
         CStudioSeleniumUtil.navigateToAndWaitForPageToLoad(driver, dashboardUrl);
 
         logger.info("Enter 10 in the Show box and press enter");
-        myRecentActivityWidgetHandler.changeShowNumber(driver,10);
+        myRecentActivityWidgetHandler.changeShowNumber(10);
 
         logger.info("Click 'Last Edited By'");
         CStudioSeleniumUtil.clickOn(driver, By.id("sortuserLastName-MyRecentActivity"));

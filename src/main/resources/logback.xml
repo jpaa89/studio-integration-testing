@@ -8,7 +8,7 @@
     </appender>
 
     <appender name="filelog" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>phantomjsdriver.log</file>
+        <file>driver.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <param name="FileNamePattern" value="manager.%i.log" />
             <param name="MinIndex" value="1" />
