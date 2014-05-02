@@ -3,8 +3,7 @@ studio-integration-testing
 
 Crafter Studio integration testing framework.
 
-setup
-=====
+###Setup
 
 Crafter Studio
 * Login to alfresco and import the provided selenium-corporate.acp blueprint
