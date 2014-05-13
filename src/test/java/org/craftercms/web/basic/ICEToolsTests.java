@@ -42,7 +42,7 @@ public class ICEToolsTests extends BaseTest{
         logger.info("Click the Preview Tools icon on contextual nav");
         CStudioSeleniumUtil.clickOn(driver, By.id("acn-preview-tools"));
 
-        //CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
+        //SeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS);
 
         logger.info("Click the preview tools panel In-Conext Editing '+' icon");
         CStudioSeleniumUtil.clickOn(driver,By.xpath("//*[@id='preview-tools-panel-container']/div[2]/div/div[1]/a"));

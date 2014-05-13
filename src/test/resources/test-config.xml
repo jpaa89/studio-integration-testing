@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation=
+               "http://www.springframework.org/schema/beans
+                http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context
+                http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/util
+                http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+    <context:component-scan base-package="org.craftercms.web" />
+
+    <bean id="driver" class="org.openqa.selenium.chrome.ChromeDriver">
+        <constructor-arg ref="desiredCapabilities"/>
+    </bean>
+
+    <bean id="desiredCapabilities" class="org.openqa.selenium.remote.DesiredCapabilities">
+        <constructor-arg>
+            <util:map id="capabilities">
+                <entry key="takesScreenshot">
+                    <value type="java.lang.Boolean">false</value>
+                </entry>
+            </util:map>
+        </constructor-arg>
+        <property name="javascriptEnabled">
+            <value type="java.lang.Boolean">true</value>
+        </property>
+    </bean>
+
+</beans>

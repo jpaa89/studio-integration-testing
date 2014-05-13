@@ -3,11 +3,9 @@
  */
 package org.craftercms.web.util;
 
-import org.craftercms.web.helpers.DashboardWidgetHandler;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.*;
@@ -23,7 +21,8 @@ import static org.junit.Assert.*;
  * @author Praveen C Elineni
  *
  * Utility Class for Selenium
- *
+ * TODO because of the refactoring process most of the methods found here will be moved to the handlers.
+ * TODO since some of the code found here could be useful for the handlers, none of it should be deleted yet
  */
 public class CStudioSeleniumUtil {
     private static final Logger logger = Logger.getLogger("CStudioSeleniumUtil.class");

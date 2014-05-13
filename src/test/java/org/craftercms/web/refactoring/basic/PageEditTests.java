@@ -1,121 +1,88 @@
 /**
  *
  */
-package org.craftercms.web.basic;
+package org.craftercms.web.refactoring.basic;
 
-import org.craftercms.web.BaseTest;
-import org.craftercms.web.basic.dashboard.widget.helpers.CSDashboardWidgetHandler;
-import org.craftercms.web.basic.dashboard.widget.helpers.CSMyRecentActivityWidgetHandler;
-import org.craftercms.web.basic.dashboard.widget.helpers.DashboardWidgetLabel;
-import org.craftercms.web.util.CStudioSeleniumUtil;
-import org.craftercms.web.util.TimeConstants;
+import org.craftercms.web.refactoring.CSBaseTest;
+import org.craftercms.web.refactoring.handlers.CSDashboardHandler;
+import org.craftercms.web.refactoring.handlers.editors.pages.impl.CSAboutPageEditorHandler;
+import org.craftercms.web.refactoring.util.CSSeleniumUtil;
+import org.craftercms.web.refactoring.util.CSTimeConstants;
 import org.junit.Test;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.text.ParseException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.*;
 
 /**
  * @author Praveen C Elineni
  * @author Juan Avila
  */
-public class PageEditTests extends BaseTest {
+public class PageEditTests extends CSBaseTest {
 
-    private String updateString = "About Us Page Updated";
+    protected CSAboutPageEditorHandler aboutPageEditorHandler;
+    protected CSDashboardHandler csDashboardHandler;
+
+    @Override
+    public void setUp() throws Exception {
+        super.setUp();
+        aboutPageEditorHandler = new CSAboutPageEditorHandler(driver,siteName);
+        csDashboardHandler = new CSDashboardHandler(driver);
+    }
 
     /**
      * Test Page Save and Close Functionality
-     *
-     * @throws InterruptedException
      */
     @Test
-    public void testPageEditSaveAndClose() throws InterruptedException {
-        driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
+    public void testPageEditSaveAndClose() {
 
-        logger.info("Login as admin");
-        login();
+        loginAsAdmin();
 
-        logger.info("Navigate to Dashboard page");
-        driver.navigate().to(dashboardUrl);
+        navigateToSiteDashboardPage();
 
-        logger.info("Edit page");
-        CStudioSeleniumUtil.editContentJS(driver, seleniumProperties.getProperty("craftercms.page.to.edit"),
-                seleniumProperties.getProperty("craftercms.page.content.type"),
-                siteName);
+        //TODO create a standard auto generated edit method ?
+        logger.info("edit and save page");
+        aboutPageEditorHandler.openEditFormJS();
+        csNavigationHandler.switchToRecentlyOpenWindow();
+        aboutPageEditorHandler.editInternalNameField(generateUpdateString("Edited-"),true);
+        aboutPageEditorHandler.saveAndClose();
+        csNavigationHandler.switchBackToPreviousWindow();
 
-        CStudioSeleniumUtil.switchToEditWindow(driver);
+        logger.info("refresh dashboard");
+        csNavigationHandler.refreshCurrentPage();
 
-        logger.info("Find internal-name field and edit");
-        driver.findElement(By.cssSelector("#internal-name .datum")).clear();
-        driver.findElement(By.cssSelector("#internal-name .datum")).sendKeys(updateString);
+        logger.info("check edited page is in my recent activity widget");
+        csDashboardHandler.getCsMyRecentActivityWidgetHandler().containsContent(aboutPageEditorHandler.getUri());
 
-        logger.info("Click Save&Close button and wait for change to complete");
-        driver.findElement(By.id("cstudioSaveAndClose")).click();
-
-        CStudioSeleniumUtil.switchToMainWindow(driver);
-
-        logger.info("Navigate back to dashboard");
-        driver.navigate().to(dashboardUrl);
-        assertTrue(driver.getTitle().equals("Crafter Studio"));
-
-        logger.info("Check my-recent-activity widget");
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(new ExpectedCondition<Boolean>() {
-            public Boolean apply(WebDriver d) {
-                return d.findElement(By.id("MyRecentActivity-body")).getText().contains(updateString);
-            }
-        });
     }
 
     /**
      * Test Page Save and Preview Functionality
-     *
-     * @throws InterruptedException
      */
     @Test
-    public void testPageEditSaveAndPreview() throws InterruptedException {
-        driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
+    public void testPageEditSaveAndPreview() {
 
-        logger.info("Login as admin");
-        login();
+        String updateString = generateUpdateString("Edited-");
 
-        String mainWindowHandle = driver.getWindowHandle();
+        loginAsAdmin();
 
-        logger.info("Navigate to Dashboard page");
-        driver.navigate().to(dashboardUrl);
+        navigateToSiteDashboardPage();
 
-        logger.info("Edit page");
-        CStudioSeleniumUtil.editContentJS(driver, seleniumProperties.getProperty("craftercms.page.to.edit"),
-                seleniumProperties.getProperty("craftercms.page.content.type"),
-                siteName);
+        logger.info("edit about page");
+        aboutPageEditorHandler.openEditFormJS();
+        csNavigationHandler.switchToRecentlyOpenWindow();
+        aboutPageEditorHandler.editInternalNameField(updateString, true);
+        aboutPageEditorHandler.saveAndPreview();
+        csNavigationHandler.switchBackToPreviousWindow();
 
-        CStudioSeleniumUtil.switchToEditWindow(driver);
-
-        String editWindowHandle = driver.getWindowHandle();
-
-        logger.info("Edit internal-name field");
-        WebElement internalNameElement = driver.findElement(By.cssSelector("#internal-name .datum"));
-        internalNameElement.clear();
-        internalNameElement.sendKeys(updateString);
-        Thread.sleep(1000);
-
-        logger.info("Click Save&Preview button and wait for change to complete");
-        driver.findElement(By.id("cstudioSaveAndPreview")).click();
-
-        logger.info("Switch back to first window");
-        driver.switchTo().window(mainWindowHandle);
-
-        logger.info("Wait for preview to load");
-        new WebDriverWait(driver, 30).until(new ExpectedCondition<Boolean>() {
-            @Override
+        //TODO could this be handled in a different way? (maybe by returning a boolean when saving and previewing
+        logger.info("wait for preview to sync");
+        new WebDriverWait(driver, CSTimeConstants.WAITING_SECONDS_PREVIEW_SYNC).until(new ExpectedCondition<Object>() {
             public Boolean apply(WebDriver webDriver) {
                 try {
-                    Alert alert = driver.switchTo().alert();
-                    alert.accept();
+                    csNavigationHandler.switchToAlertAndAccept();
                     return true;
                 } catch (Exception ex) {
                     return false;
@@ -123,30 +90,35 @@ public class PageEditTests extends BaseTest {
             }
         });
 
-        String pageUrl = seleniumProperties.getProperty("craftercms.base.url") + seleniumProperties.getProperty("craftercms.page.to.edit.url");
+        logger.info("check the url matches edited page url");
+        csNavigationHandler.isCurrentPage(baseUrl + "/" + aboutPageEditorHandler.getFileName());
 
-        logger.info("Check url match edited page url");
-        assertTrue(driver.getCurrentUrl().equals(pageUrl));
-        logger.info("Check item content has changed");
-        assertTrue(CStudioSeleniumUtil.readFileContents(seleniumProperties.getProperty("craftercms.preview.deployer.path") + seleniumProperties.getProperty("craftercms.page.to.edit"), updateString));
+        logger.info("check item content has changed");
 
-        logger.info("Go back and close edit window so item is not locked");
-        driver.switchTo().window(editWindowHandle);
-        driver.findElement(By.cssSelector("input[value=\"Cancel\"]")).click();
-        List<WebElement> buttonConfirm = driver.findElements(By.xpath("//button[text()='Yes']"));
-        if (buttonConfirm.size() > 0)
-            buttonConfirm.get(0).click();
+        //TODO think about the readFileContents approach, although this looks ok too
+        assertTrue(CSSeleniumUtil.readFileContents(previewDeployerPath + aboutPageEditorHandler.getUri(), updateString));
+
+        logger.info("go back and close edit window so item is not locked");
+        csNavigationHandler.switchToRecentlyOpenWindow();
+
+        logger.info("cancel, no more editing is needed");
+        aboutPageEditorHandler.cancel();
+
+        csNavigationHandler.switchBackToPreviousWindow();
+
+        //logout();
+
     }
 
 
 
     /**
      * Test Save And Preview My RecentActivity Functionality
-     *
+     * TODO refactor
      */
-    @Test
+    /*@Test
     public void testPageSaveAndPreviewMyRecentActivity() throws ParseException {
-        driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
+        driver.manage().timeouts().implicitlyWait(CSTimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
 
         CSDashboardWidgetHandler myRecentActivityHandler = new CSMyRecentActivityWidgetHandler(driver);
         String updateStringBody1 = updateString+ " (1)";
@@ -169,7 +141,7 @@ public class PageEditTests extends BaseTest {
         String fullPageToEditUrl = seleniumProperties.getProperty("craftercms.base.url") + seleniumProperties.getProperty("craftercms.page.to.edit.url");
         CStudioSeleniumUtil.navigateToAndWaitForPageToLoad(driver, fullPageToEditUrl);
 
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_PAGE_LOADING);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_PAGE_LOADING);
 
         try {
             logger.info("Click 'Edit' on contextual nav");
@@ -183,7 +155,7 @@ public class PageEditTests extends BaseTest {
             CStudioSeleniumUtil.clickOn(driver, By.xpath("//*[text()='Continue']"));
         }
 
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_PAGE_LOADING);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_PAGE_LOADING);
 
         logger.info("Go to the dashboard");
         CStudioSeleniumUtil.navigateToAndWaitForPageToLoad(driver,dashboardUrl);
@@ -201,7 +173,7 @@ public class PageEditTests extends BaseTest {
         driver.switchTo().window(mainWindowHandle);
 
         logger.info("Wait for preview to load");
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_PREVIEW_SYNC).until(new ExpectedCondition<Boolean>() {
+        new WebDriverWait(driver, CSTimeConstants.WAITING_SECONDS_PREVIEW_SYNC).until(new ExpectedCondition<Boolean>() {
             @Override
             public Boolean apply(WebDriver webDriver) {
                 try {
@@ -238,8 +210,8 @@ public class PageEditTests extends BaseTest {
 
         //TODO Info: Dashboard should reload automatically. Minor crafter bug!
         // To keep the test going uncomment these 2 lines:
-        //SeleniumUtil.refreshAndWaitForPageToLoad(driver);
-        //SeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_PAGE_LOADING);
+        //CSSeleniumUtil.refreshAndWaitForPageToLoad(driver);
+        //CSSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_PAGE_LOADING);
 
         logger.info("Check if timespan of edited page is updated");
         String timestampSecondEdit = myRecentActivityMyLastEdit(editPageUri);
@@ -250,7 +222,7 @@ public class PageEditTests extends BaseTest {
         By mraEditPageTdBy = By.xpath("//tbody[@id='MyRecentActivity-tbody']/tr[descendant::input[contains(@id,'"+editPageUri+"')]]/td[2]/a");
         CStudioSeleniumUtil.clickOn(driver,mraEditPageTdBy);
 
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_PAGE_LOADING);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_PAGE_LOADING);
 
         logger.info("Edit page");
         CStudioSeleniumUtil.switchToEditWindow(driver);
@@ -264,7 +236,7 @@ public class PageEditTests extends BaseTest {
         driver.switchTo().window(mainWindowHandle);
 
         logger.info("Wait for preview to load");
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_PREVIEW_SYNC).until(new ExpectedCondition<Boolean>() {
+        new WebDriverWait(driver, CSTimeConstants.WAITING_SECONDS_PREVIEW_SYNC).until(new ExpectedCondition<Boolean>() {
             @Override
             public Boolean apply(WebDriver webDriver) {
                 try {
@@ -286,10 +258,10 @@ public class PageEditTests extends BaseTest {
         logger.info("Click Edit Button next to the Page URL field");
         CStudioSeleniumUtil.clickOn(driver,By.xpath("//*[@id='file-name']/div/div[3]/input"));
 
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_PAGE_LOADING);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_PAGE_LOADING);
 
         logger.info("Check alert and accept");
-        new WebDriverWait(driver, TimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS).until(new ExpectedCondition<Boolean>() {
+        new WebDriverWait(driver, CSTimeConstants.WAITING_SECONDS_HEAVY_JAVASCRIPT_TASKS).until(new ExpectedCondition<Boolean>() {
             @Override
             public Boolean apply(WebDriver webDriver) {
                 try {
@@ -306,7 +278,7 @@ public class PageEditTests extends BaseTest {
         WebElement urlInput = driver.findElement(By.xpath("//*[@id='file-name']/div/input"));
         urlInput.clear();
         urlInput.sendKeys(updateStringNewUrlName);
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
 
         logger.info("Click Save&Preview button and wait for change to complete");
         CStudioSeleniumUtil.clickOn(driver,By.id("cstudioSaveAndPreview"));
@@ -337,7 +309,7 @@ public class PageEditTests extends BaseTest {
         urlInput = driver.findElement(By.xpath("//*[@id='file-name']/div/input"));
         urlInput.clear();
         urlInput.sendKeys(updateStringOriginalUrlName);
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
 
         logger.info("Click Save&Close button and wait for change to complete");
         CStudioSeleniumUtil.clickOn(driver,By.id("cstudioSaveAndClose"));
@@ -350,35 +322,37 @@ public class PageEditTests extends BaseTest {
         url = driver.getCurrentUrl();
         assertTrue(url.endsWith(updateStringOriginalUrlName));
 
-    }
+    }*/
 
-    private void useAuthorUser() {
+    /*private void useAuthorUser() {
         setUsername(seleniumProperties.getProperty("craftercms.author.username"));
         setPassword(seleniumProperties.getProperty("craftercms.author.password"));
-    }
+    }*/
     /**
      * Looks for the my last edit timestamp for the specified content in My Recent Activity
      * @param contentUri the content uri
      * @return the content MyLastEdit text
      */
-    private String myRecentActivityMyLastEdit(String contentUri){
+    /*private String myRecentActivityMyLastEdit(String contentUri){
         By mraEditedPageTimestampTdBy = By.xpath("//tbody[@id='MyRecentActivity-tbody']/tr[descendant::input[contains(@id,'"+contentUri+"')]]/td[last()]");
         WebElement myRecentActivityEditedPageTimestampTd = driver.findElement(mraEditedPageTimestampTdBy);
         return myRecentActivityEditedPageTimestampTd.getText();
-    }
+    }*/
 
     /**
      * Edit the open edit form body field
      * Requires edit form to be open
      * @param update
      */
-    private void editBodyField(String update) {
+    /*private void editBodyField(String update) {
         driver.switchTo().frame(0);
         WebElement bodyElement = driver.findElement(By.id("tinymce"));
         bodyElement.clear();
         bodyElement.sendKeys(update);
-        CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
+        CStudioSeleniumUtil.waitFor(CSTimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
         driver.switchTo().defaultContent();
-    }
+    }*/
+
+
 
 }

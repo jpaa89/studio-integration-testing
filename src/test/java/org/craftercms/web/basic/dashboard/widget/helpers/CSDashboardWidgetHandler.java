@@ -1,5 +1,6 @@
-package org.craftercms.web.helpers;
+package org.craftercms.web.basic.dashboard.widget.helpers;
 
+import org.craftercms.web.refactoring.handlers.CSHandler;
 import org.craftercms.web.util.CStudioSeleniumUtil;
 import org.craftercms.web.util.TimeConstants;
 import org.openqa.selenium.*;
@@ -17,52 +18,19 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
-
 
 /**
  * @author Juan Avila
- * Handles most of the necessary dashboard widget ui and content interactions
+ * TODO Warning this a very old implementation that needs a lot of changes. This should not be considered functional and has not been refactored at all!
+ * TODO refactor this so it uses the new apprach (no asserts in the handlers, no properties -get them by parameter-, no methods named check, etc
  */
-public class DashboardWidgetHandler {
+public abstract class CSDashboardWidgetHandler extends CSSimpleDashboardWidgetHandler {
 
-    private static final Properties seleniumProperties = new Properties();
-    static {
-        try {
-            seleniumProperties.load(CStudioSeleniumUtil.class.getClassLoader().getResourceAsStream("selenium.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+    public CSDashboardWidgetHandler(WebDriver webDriver, String id) {
+        super(webDriver, id);
     }
 
-    protected String id; // This could be replaced with subclasses soon
-    protected WebDriver webDriver;
-
-    /**
-     * Creates a dashboard widget handler that will use the given id to perform ui and content interactions
-     * @param id the id of the dashboard widget div
-     */
-    public DashboardWidgetHandler(WebDriver webDriver, String id){
-        this.webDriver = webDriver;
-        this.id=id;
-    }
-
-    public WebDriver getWebDriver() {
-        return webDriver;
-    }
-
-    public void setWebDriver(WebDriver webDriver) {
-        this.webDriver = webDriver;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Selects (clicks the item checkbox) the specified contents
-     * @param contentUris contents uris
-     */
     public void selectContents(String[] contentUris) {
         checkCurrentPageIsDashboardPage();
 
@@ -76,7 +44,7 @@ public class DashboardWidgetHandler {
                 inputsContainsIdXpathOr.append(" or contains(@id,'").append(contentUris[i]).append("')");
             }
 
-            inputElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']//input["+inputsContainsIdXpathOr+"]");
+            inputElementsBy = By.xpath("//tbody[@id='"+ divId +"-tbody']//input["+inputsContainsIdXpathOr+"]");
 
             inputElements = webDriver.findElements(inputElementsBy);
 
@@ -100,9 +68,9 @@ public class DashboardWidgetHandler {
         checkCurrentPageIsDashboardPage();
 
         // Element whose future staleness will help detect the widget has effectively changed
-        final WebElement widgetTbody = webDriver.findElement(By.id(id + "-tbody"));
+        final WebElement widgetTbody = webDriver.findElement(By.id(divId + "-tbody"));
 
-        WebElement showBoxInput = webDriver.findElement(By.id("widget-showitems-"+id));
+        WebElement showBoxInput = webDriver.findElement(By.id("widget-showitems-"+ divId));
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_WEB_ELEMENT);
         showBoxInput.clear();
         showBoxInput.sendKeys(""+numberOfContentItemsToShow);
@@ -111,7 +79,7 @@ public class DashboardWidgetHandler {
         CStudioSeleniumUtil.waitFor(TimeConstants.WAITING_SECONDS_LIGHT_KEY_SENDING_TASK);
 
         new WebDriverWait(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(new ExpectedCondition<Boolean>() {
-            
+
             public Boolean apply(WebDriver webDriver) {
                 try {
                     widgetTbody.isEnabled(); // looking forward to get the StaleElementReferenceException
@@ -123,8 +91,8 @@ public class DashboardWidgetHandler {
             }
         });
 
-        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id(id+"-tbody"));
-        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id(id+"-tbody"));
+        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id(divId +"-tbody"));
+        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id(divId +"-tbody"));
 
     }
 
@@ -161,7 +129,7 @@ public class DashboardWidgetHandler {
      * @return true if displays Pages only
      */
     public boolean isDisplayingPagesOnly() {
-        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_PAGE);
+        return displaysOnlyContentsOfKind(DashboardWidgetLabel.KIND_PAGE);
     }
 
     /**
@@ -169,7 +137,7 @@ public class DashboardWidgetHandler {
      * @return true if displays Components only
      */
     public boolean isDisplayingComponentsOnly() {
-        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_COMPONENT);
+        return displaysOnlyContentsOfKind(DashboardWidgetLabel.KIND_COMPONENT);
     }
 
     /**
@@ -177,7 +145,7 @@ public class DashboardWidgetHandler {
      * @return true if displays Documents only
      */
     public boolean isDisplayingDocumentsOnly() {
-        return displaysOnlyContentsOfKind(DashboardWidgetContentInfo.KIND_DOCUMENT);
+        return displaysOnlyContentsOfKind(DashboardWidgetLabel.KIND_DOCUMENT);
     }
 
     /**
@@ -187,34 +155,34 @@ public class DashboardWidgetHandler {
      */
     public boolean isDisplayingMultipleKindsOfContents() {
 
-        DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray;
+        DashboardWidgetLabel[] dashboardWidgetLabelArray;
         String lastKind = "";
         String currentKind;
         boolean multipleKinds = false;
 
-        dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo();
+        dashboardWidgetLabelArray = dashboardWidgetLabels();
 
-        if(dashboardWidgetContentInfoArray != null && dashboardWidgetContentInfoArray.length > 1) {
+        if(dashboardWidgetLabelArray != null && dashboardWidgetLabelArray.length > 1) {
 
             int j = 0;
 
-            while(j < dashboardWidgetContentInfoArray.length){
-                if(dashboardWidgetContentInfoArray[j].getTitle().contains("Section Defaults")){
+            while(j < dashboardWidgetLabelArray.length){
+                if(dashboardWidgetLabelArray[j].getTitle().contains("Section Defaults")){
                     j++;
                 }
                 else{
-                    lastKind = dashboardWidgetContentInfoArray[j].getKind();
+                    lastKind = dashboardWidgetLabelArray[j].getKind();
                     j++;
                     break;
                 }
             }
 
-            //lastKind = dashboardWidgetContentInfoArray[0].getKind();
-            for(int i = j; i < dashboardWidgetContentInfoArray.length; i++){
-                if(dashboardWidgetContentInfoArray[i].getTitle().contains("Section Defaults")){
+            //lastKind = dashboardWidgetLabelArray[0].getKind();
+            for(int i = j; i < dashboardWidgetLabelArray.length; i++){
+                if(dashboardWidgetLabelArray[i].getTitle().contains("Section Defaults")){
                     continue;
                 }
-                currentKind = dashboardWidgetContentInfoArray[i].getKind();
+                currentKind = dashboardWidgetLabelArray[i].getKind();
                 if(!lastKind.equals(currentKind)){
                     multipleKinds = true;
                     break;
@@ -249,7 +217,7 @@ public class DashboardWidgetHandler {
                 inputsContainsIdXpathOr.append(" or contains(@id,'").append(contentsUris[i]).append("')");
             }
 
-            inputElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']//input["+inputsContainsIdXpathOr+"]");
+            inputElementsBy = By.xpath("//tbody[@id='"+ divId +"-tbody']//input["+inputsContainsIdXpathOr+"]");
             inputElements = webDriver.findElements(inputElementsBy);
 
             if(inputElements.size() >= contentsUris.length){
@@ -278,14 +246,14 @@ public class DashboardWidgetHandler {
      */
     public boolean contentsAreHidden() {
         boolean contentsHidden = true;
-        By inputElementsBy = By.xpath("//tbody[@id='"+id+"']//tr[contains(@class,'wcm-table-parent')]");
+        By inputElementsBy = By.xpath("//tbody[@id='"+ divId +"']//tr[contains(@class,'wcm-table-parent')]");
         List<WebElement> trElements = webDriver.findElements(inputElementsBy);
 
         if(!trElements.isEmpty()){
             for(final WebElement input : trElements){
                 try {
                     new WebDriverWait(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(new ExpectedCondition<Boolean>() {
-                        
+
                         public Boolean apply(WebDriver webDriver) {
                             return input.getAttribute("style").replace(" ","").contains("display:none");
                         }
@@ -315,6 +283,43 @@ public class DashboardWidgetHandler {
         return countContents() > 0;
     }
 
+    public boolean allMenusHidden(){
+        boolean hiddenMenus = true;
+
+        By menusBy = By.cssSelector("div#"+divId+" a.widget-expand-state");
+        List<WebElement> menus = webDriver.findElements(menusBy);
+
+        // This is coded this way because isDisplay may return false if the page hasn't loaded yet, so it could return
+        // that a menu is not visible when it actually is.
+        if(menus.size() > 0){
+
+            for(WebElement menu : menus){
+                if(!menu.getAttribute("style").replace(" ","").contains("display:none")){
+                    hiddenMenus = false;
+                    break;
+                }
+            }
+        }
+        else{
+            hiddenMenus = false; // if there are no menus they cannot be considered as hidden
+        }
+
+        return hiddenMenus;
+
+    }
+
+    public boolean allMenusVisible(){
+        By menusBy = By.cssSelector("div#"+divId+" a.widget-expand-state");
+        final List<WebElement> menus = webDriver.findElements(menusBy);
+
+        try {
+            new WebDriverWait(webDriver,TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(ExpectedConditions.visibilityOfAllElements(menus));
+            return true;
+        }catch (Exception e){
+            return false;
+        }
+    }
+
     /**
      * Counts the contents of this widget. This method looks for the content withing the widget html
      * in its current mode -meaning that the number of shown items and the filter dictate the total amount
@@ -323,7 +328,7 @@ public class DashboardWidgetHandler {
      */
     public int countContents() {
         checkCurrentPageIsDashboardPage();
-        By inputElementsBy = By.xpath("//tbody[@id='" + id + "-tbody']//input");
+        By inputElementsBy = By.xpath("//tbody[@id='" + divId + "-tbody']//input");
         return  webDriver.findElements(inputElementsBy).size();
     }
 
@@ -331,13 +336,13 @@ public class DashboardWidgetHandler {
      * Returns an array containing the labels information of all the existing contents.
      * @return all the labels/contents information of all the existing contents
      */
-    public DashboardWidgetContentInfo[] dashboardWidgetContentsInfo() {
+    public DashboardWidgetLabel[] dashboardWidgetLabels() {
 
-        By spanElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[1]]");
+        By spanElementsBy = By.xpath("//tbody[@id='"+ divId +"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[1]]");
         final List<WebElement> spanElements = webDriver.findElements(spanElementsBy) ;
         int spanElementsSize = spanElements.size();
         StringBuilder stringTables = new StringBuilder();
-        DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray = new DashboardWidgetContentInfo[spanElementsSize];
+        DashboardWidgetLabel[] dashboardWidgetLabelArray = new DashboardWidgetLabel[spanElementsSize];
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(false);
         DocumentBuilder documentBuilder = null;
@@ -390,16 +395,16 @@ public class DashboardWidgetHandler {
                         String lockedBy = trs.item(4).getLastChild().getTextContent();
                         String scheduled = (trsCount == 6) ? trs.item(5).getLastChild().getTextContent() : "";
 
-                        if(kind.contains(DashboardWidgetContentInfo.KIND_PAGE)){
-                            kind = DashboardWidgetContentInfo.KIND_PAGE;
-                        } else if(kind.contains(DashboardWidgetContentInfo.KIND_COMPONENT)){
-                            kind = DashboardWidgetContentInfo.KIND_COMPONENT;
+                        if(kind.contains(DashboardWidgetLabel.KIND_PAGE)){
+                            kind = DashboardWidgetLabel.KIND_PAGE;
+                        } else if(kind.contains(DashboardWidgetLabel.KIND_COMPONENT)){
+                            kind = DashboardWidgetLabel.KIND_COMPONENT;
                         }
-                        else if(kind.contains(DashboardWidgetContentInfo.KIND_DOCUMENT)){
-                            kind = DashboardWidgetContentInfo.KIND_DOCUMENT;
+                        else if(kind.contains(DashboardWidgetLabel.KIND_DOCUMENT)){
+                            kind = DashboardWidgetLabel.KIND_DOCUMENT;
                         }
 
-                        dashboardWidgetContentInfoArray[i] = new DashboardWidgetContentInfo(kind,title.trim(),status.trim(),lastEdited.trim(),editedBy.trim(),lockedBy.trim(),scheduled.trim());
+                        dashboardWidgetLabelArray[i] = new DashboardWidgetLabel(kind,title.trim(),status.trim(),lastEdited.trim(),editedBy.trim(),lockedBy.trim(),scheduled.trim());
 
                     }
 
@@ -411,7 +416,7 @@ public class DashboardWidgetHandler {
         }
 
 
-        return dashboardWidgetContentInfoArray;
+        return dashboardWidgetLabelArray;
     }
 
     /**
@@ -419,12 +424,12 @@ public class DashboardWidgetHandler {
      * @param contentUri the content uri
      * @return the label/content information for the given content uri
      */
-    public DashboardWidgetContentInfo dashboardWidgetContentInfo(String contentUri) {
+    public DashboardWidgetLabel dashboardWidgetLabel(String contentUri) {
 
-        By spanElementsBy = By.xpath("//tbody[@id='"+id+"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[contains(@id,'"+contentUri+"') and position() = 1]]");
+        By spanElementsBy = By.xpath("//tbody[@id='"+ divId +"-tbody']/tr/td[1]/div[1]/div[1]/span[preceding-sibling::input[contains(@id,'"+contentUri+"') and position() = 1]]");
         final List<WebElement> spanElements = webDriver.findElements(spanElementsBy) ;
         StringBuilder stringTables = new StringBuilder();
-        DashboardWidgetContentInfo dashboardWidgetContentInfo = null;
+        DashboardWidgetLabel dashboardWidgetLabel = null;
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(false);
         DocumentBuilder documentBuilder = null;
@@ -478,28 +483,28 @@ public class DashboardWidgetHandler {
                         String lockedBy = trs.item(4).getLastChild().getTextContent();
                         String scheduled = (trsCount == 6) ? trs.item(5).getLastChild().getTextContent() : "";
 
-                        if(kind.contains(DashboardWidgetContentInfo.KIND_PAGE)){
-                            kind = DashboardWidgetContentInfo.KIND_PAGE;
-                        } else if(kind.contains(DashboardWidgetContentInfo.KIND_COMPONENT)){
-                            kind = DashboardWidgetContentInfo.KIND_COMPONENT;
+                        if(kind.contains(DashboardWidgetLabel.KIND_PAGE)){
+                            kind = DashboardWidgetLabel.KIND_PAGE;
+                        } else if(kind.contains(DashboardWidgetLabel.KIND_COMPONENT)){
+                            kind = DashboardWidgetLabel.KIND_COMPONENT;
                         }
-                        else if(kind.contains(DashboardWidgetContentInfo.KIND_DOCUMENT)){
-                            kind = DashboardWidgetContentInfo.KIND_DOCUMENT;
-                        }
-
-                        if(status.contains(DashboardWidgetContentInfo.STATUS_DELETED)){
-                            status = DashboardWidgetContentInfo.STATUS_DELETED;
-                        } else if(status.contains(DashboardWidgetContentInfo.STATUS_IN_PROGRESS)){
-                            status = DashboardWidgetContentInfo.STATUS_IN_PROGRESS;
-                        }
-                        else if(status.contains(DashboardWidgetContentInfo.STATUS_PROCESSING)){
-                            status = DashboardWidgetContentInfo.STATUS_PROCESSING;
-                        }
-                        else if(status.contains(DashboardWidgetContentInfo.STATUS_SUBMITTED)){
-                            status = DashboardWidgetContentInfo.STATUS_SUBMITTED;
+                        else if(kind.contains(DashboardWidgetLabel.KIND_DOCUMENT)){
+                            kind = DashboardWidgetLabel.KIND_DOCUMENT;
                         }
 
-                        dashboardWidgetContentInfo = new DashboardWidgetContentInfo(kind,title.trim(),status,lastEdited.trim(),editedBy.trim(),lockedBy.trim(),scheduled.trim());
+                        if(status.contains(DashboardWidgetLabel.STATUS_DELETED)){
+                            status = DashboardWidgetLabel.STATUS_DELETED;
+                        } else if(status.contains(DashboardWidgetLabel.STATUS_IN_PROGRESS)){
+                            status = DashboardWidgetLabel.STATUS_IN_PROGRESS;
+                        }
+                        else if(status.contains(DashboardWidgetLabel.STATUS_PROCESSING)){
+                            status = DashboardWidgetLabel.STATUS_PROCESSING;
+                        }
+                        else if(status.contains(DashboardWidgetLabel.STATUS_SUBMITTED)){
+                            status = DashboardWidgetLabel.STATUS_SUBMITTED;
+                        }
+
+                        dashboardWidgetLabel = new DashboardWidgetLabel(kind,title.trim(),status,lastEdited.trim(),editedBy.trim(),lockedBy.trim(),scheduled.trim());
 
                     }
 
@@ -512,15 +517,15 @@ public class DashboardWidgetHandler {
         }
 
 
-        return dashboardWidgetContentInfo;
+        return dashboardWidgetLabel;
     }
 
     /**
      * Checks the current driver url equals the dashboard url
      */
     protected void checkCurrentPageIsDashboardPage() {
-        String siteName = seleniumProperties.getProperty("craftercms.sitename");
-        String dashboardUrl = String.format(seleniumProperties.getProperty("craftercms.site.dashboard.url"), siteName);
+        String siteName = CSHandler.seleniumProperties.getProperty("craftercms.sitename");
+        String dashboardUrl = String.format(CSHandler.seleniumProperties.getProperty("craftercms.site.dashboard.url"), siteName);
 
         if(!webDriver.getCurrentUrl().equals(dashboardUrl)){
             throw new UnsupportedOperationException("Current driver URL is not dashboard URL");
@@ -535,12 +540,12 @@ public class DashboardWidgetHandler {
         // Element whose future staleness will help detect the widget has effectively changed
         checkCurrentPageIsDashboardPage();
 
-        final WebElement widgetTbody = webDriver.findElement(By.id(id + "-tbody"));
+        final WebElement widgetTbody = webDriver.findElement(By.id(divId + "-tbody"));
 
-        CStudioSeleniumUtil.clickOn(webDriver, By.xpath("//select[@id='widget-filterBy-"+id+"']/option[text()='"+filter+"']"));
+        CStudioSeleniumUtil.clickOn(webDriver, By.xpath("//select[@id='widget-filterBy-"+ divId +"']/option[text()='"+filter+"']"));
 
         new WebDriverWait(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT).until(new ExpectedCondition<Boolean>() {
-            
+
             public Boolean apply(WebDriver webDriver) {
                 try {
                     widgetTbody.isEnabled(); // looking forward to get the StaleElementReferenceException
@@ -552,26 +557,26 @@ public class DashboardWidgetHandler {
             }
         });
 
-        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id(id+"-tbody"));
-        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id(id + "-tbody"));
+        CStudioSeleniumUtil.waitForItemToDisplay(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT,By.id(divId +"-tbody"));
+        CStudioSeleniumUtil.waitForItemToBeEnabled(webDriver, TimeConstants.WAITING_SECONDS_WEB_ELEMENT, By.id(divId + "-tbody"));
 
     }
 
     /**
      * Check if only contents of the matching kind are being displayed.
-     * Important: Ignores level descriptors by checking using contains("Section Defaults").
+     * Important: Ignores level descriptors by using contains("Section Defaults").
      * @param kind kind of content
      * @return true if only contents of the matching kind are being displayed
      */
     protected boolean displaysOnlyContentsOfKind(String kind) {
         boolean sameKind = true;
 
-        DashboardWidgetContentInfo[] dashboardWidgetContentInfoArray = dashboardWidgetContentsInfo();
+        DashboardWidgetLabel[] dashboardWidgetLabelArray = dashboardWidgetLabels();
 
-        if(dashboardWidgetContentInfoArray != null) {
-            for (DashboardWidgetContentInfo aDashboardWidgetContentInfo : dashboardWidgetContentInfoArray) {
-                if (!kind.equals(aDashboardWidgetContentInfo.getKind())) {
-                    if(aDashboardWidgetContentInfo.getTitle().contains("Section Defaults")){
+        if(dashboardWidgetLabelArray != null) {
+            for (DashboardWidgetLabel aDashboardWidgetLabel : dashboardWidgetLabelArray) {
+                if (!kind.equals(aDashboardWidgetLabel.getKind())) {
+                    if(aDashboardWidgetLabel.getTitle().contains("Section Defaults")){
                         continue;
                     }
                     sameKind = false;
@@ -585,5 +590,9 @@ public class DashboardWidgetHandler {
 
         return sameKind;
     }
+
+
+
+
 
 }

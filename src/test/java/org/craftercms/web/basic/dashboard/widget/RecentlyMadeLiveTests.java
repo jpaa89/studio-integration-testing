@@ -1,7 +1,8 @@
 package org.craftercms.web.basic.dashboard.widget;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.craftercms.web.helpers.DashboardWidgetHandler;
+import org.craftercms.web.basic.dashboard.widget.helpers.CSDashboardWidgetHandler;
+import org.craftercms.web.basic.dashboard.widget.helpers.CSRecentlyMadeLiveWidgetHandler;
 import org.craftercms.web.util.CStudioSeleniumUtil;
 import org.craftercms.web.util.TimeConstants;
 import org.junit.Test;
@@ -22,12 +23,12 @@ import java.util.List;
  */
 public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
 
-    protected DashboardWidgetHandler recentlyMadeLiveWidgetHandler;
+    protected CSDashboardWidgetHandler recentlyMadeLiveWidgetHandler;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        recentlyMadeLiveWidgetHandler = new DashboardWidgetHandler(driver, "recentlyMadeLive");
+        recentlyMadeLiveWidgetHandler = new CSRecentlyMadeLiveWidgetHandler(driver);
     }
 
     /**
@@ -41,7 +42,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
     public void recentlyMadeLiveTest() throws InterruptedException, IOException, SAXException, ParserConfigurationException {
 
         List<WebElement> iconSpanElements;
-        By iconSpanBy =By.xpath("//tbody[@id='"+recentlyMadeLiveWidgetHandler.getId()+"-tbody']//span[contains(concat(' ',@class,' '),' parent-div-widget ')]");
+        By iconSpanBy =By.xpath("//tbody[@id='"+recentlyMadeLiveWidgetHandler.getDivId()+"-tbody']//span[contains(concat(' ',@class,' '),' parent-div-widget ')]");
 
         logger.info("Login as admin");
         login();
@@ -114,7 +115,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         assertTrue(recentlyMadeLiveWidgetHandler.countContents() == 10);
 
         logger.info("Click collapse/expand All' all in RML");
-        CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-"+recentlyMadeLiveWidgetHandler.getId()));
+        CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-"+recentlyMadeLiveWidgetHandler.getDivId()));
 
         logger.info("Check all items are hidden");
         recentlyMadeLiveWidgetHandler.contentsAreHidden();
@@ -126,7 +127,7 @@ public class RecentlyMadeLiveTests extends DashboardWidgetTestsBase {
         }
 
         logger.info("Click collapse/expand All' all in RML");
-        CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-" + recentlyMadeLiveWidgetHandler.getId()));
+        CStudioSeleniumUtil.clickOn(driver, By.id("expand-all-" + recentlyMadeLiveWidgetHandler.getDivId()));
 
         logger.info("Check all (10) items are visible");
         assertTrue(recentlyMadeLiveWidgetHandler.countContents() == 10);

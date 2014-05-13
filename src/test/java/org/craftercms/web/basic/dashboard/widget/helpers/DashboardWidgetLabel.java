@@ -1,10 +1,10 @@
-package org.craftercms.web.helpers;
+package org.craftercms.web.basic.dashboard.widget.helpers;
 
 /**
  * @author Juan Avila
  * Meant to hold the label info of a content/item
  */
-public class DashboardWidgetContentInfo {
+public class DashboardWidgetLabel {
 
     public static final String KIND_PAGE = "Page";
     public static final String KIND_COMPONENT = "Component";
@@ -23,7 +23,7 @@ public class DashboardWidgetContentInfo {
     private String lockedBy;
     private String scheduled;
 
-    public DashboardWidgetContentInfo(String kind, String title, String status, String lastEdited, String editedBy, String lockedBy, String scheduled) {
+    public DashboardWidgetLabel(String kind, String title, String status, String lastEdited, String editedBy, String lockedBy, String scheduled) {
         this.kind = kind;
         this.title = title;
         this.status = status;

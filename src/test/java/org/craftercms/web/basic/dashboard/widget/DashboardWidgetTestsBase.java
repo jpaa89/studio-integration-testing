@@ -1,12 +1,12 @@
 package org.craftercms.web.basic.dashboard.widget;
 
 import org.craftercms.web.BaseTest;
-import org.craftercms.web.helpers.DashboardWidgetHandler;
+
+
+import org.craftercms.web.basic.dashboard.widget.helpers.CSDashboardWidgetHandler;
+import org.craftercms.web.basic.dashboard.widget.helpers.CSMyRecentActivityWidgetHandler;
 import org.craftercms.web.util.CStudioSeleniumUtil;
 import org.craftercms.web.util.TimeConstants;
-import org.openqa.selenium.*;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.concurrent.TimeUnit;
 
@@ -16,13 +16,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class DashboardWidgetTestsBase extends BaseTest {
 
-    protected DashboardWidgetHandler myRecentActivityWidgetHandler;
+    protected CSDashboardWidgetHandler myRecentActivityWidgetHandler;
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         driver.manage().timeouts().implicitlyWait(TimeConstants.WAITING_SECONDS_WEB_ELEMENT, TimeUnit.SECONDS);
-        myRecentActivityWidgetHandler = new DashboardWidgetHandler(driver,"MyRecentActivity");
+        myRecentActivityWidgetHandler = new CSMyRecentActivityWidgetHandler(driver);
     }
 
     public void useAuthorUser() {
@@ -40,14 +40,14 @@ public class DashboardWidgetTestsBase extends BaseTest {
      * Warning: Be careful, other selected contents within the dashboard will affect this method (they will also be
      * submitted to go live on the given schedule or will hide the Go live option from the context nav if they are not
      * suitable to go live. Ensure the given date and time are after now.
-     * @param dashboardWidgetHandler the dashboard widget to select the contents from
+     * @param csDashboardWidgetHandler the dashboard widget to select the contents from
      * @param contentUris content uris to be scheduled
      * @param date Date format example: "12/28/2099."
      * @param time Time format example: "11:59:59 p.m."
      *
      */
-    protected void selectAndSubmitContentToGoLiveOnSchedule(DashboardWidgetHandler dashboardWidgetHandler, final String[] contentUris, String date, String time) {
-        dashboardWidgetHandler.selectContents(contentUris);
+    protected void selectAndSubmitContentToGoLiveOnSchedule(CSDashboardWidgetHandler csDashboardWidgetHandler, final String[] contentUris, String date, String time) {
+        csDashboardWidgetHandler.selectContents(contentUris);
         CStudioSeleniumUtil.selectAndSubmitContentToGoLiveOnSchedule(driver, date, time);
     }
 
@@ -55,11 +55,11 @@ public class DashboardWidgetTestsBase extends BaseTest {
      * Selects and submits the given contents to go live now.
      * Warning: Be careful, other selected contents within the dashboard will affect this method (they will also be
      * submitted to go live or will hide the Go live option from the context nav if they are not suitable to go live.
-     * @param dashboardWidgetHandler the dashboard widget to select the contents from
+     * @param csDashboardWidgetHandler the dashboard widget to select the contents from
      * @param contentUris the content uris
      */
-    protected void selectAndSubmitContentToGoLiveNow(DashboardWidgetHandler dashboardWidgetHandler, final String[] contentUris) {
-        dashboardWidgetHandler.selectContents(contentUris);
+    protected void selectAndSubmitContentToGoLiveNow(CSDashboardWidgetHandler csDashboardWidgetHandler, final String[] contentUris) {
+        csDashboardWidgetHandler.selectContents(contentUris);
         CStudioSeleniumUtil.selectAndSubmitContentToGoLiveNow(driver);
     }
 

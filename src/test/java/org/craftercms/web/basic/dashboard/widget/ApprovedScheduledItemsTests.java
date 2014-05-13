@@ -1,6 +1,8 @@
 package org.craftercms.web.basic.dashboard.widget;
 
-import org.craftercms.web.helpers.DashboardWidgetHandler;
+
+import org.craftercms.web.basic.dashboard.widget.helpers.CSApprovedScheduledItemsWidgetHandler;
+import org.craftercms.web.basic.dashboard.widget.helpers.CSDashboardWidgetHandler;
 import org.craftercms.web.util.CStudioSeleniumUtil;
 import org.craftercms.web.util.TimeConstants;
 import org.junit.Test;
@@ -23,13 +25,13 @@ import static org.junit.Assert.assertTrue;
  */
 public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
 
-    protected DashboardWidgetHandler approvedScheduledItemsWidgetHandler;
+    protected CSDashboardWidgetHandler approvedScheduledItemsWidgetHandler;
 
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        approvedScheduledItemsWidgetHandler = new DashboardWidgetHandler(driver, "approvedScheduledItems");
+        approvedScheduledItemsWidgetHandler = new CSApprovedScheduledItemsWidgetHandler(driver);
     }
 
     /**
@@ -136,20 +138,20 @@ public class ApprovedScheduledItemsTests extends DashboardWidgetTestsBase {
     /**
      * Checks if the widget contains the specified contents.
      * Calls the widget containsContents method
-     * @param dashboardWidgetHandler the widget handler to look for the contents
+     * @param csDashboardWidgetHandler the widget handler to look for the contents
      * @param contentUris contents uris to check
      */
-    private void checkContentsAppearsInWidget(DashboardWidgetHandler dashboardWidgetHandler, String[] contentUris){
-        assertTrue(dashboardWidgetHandler.containsContents(contentUris));
+    private void checkContentsAppearsInWidget(CSDashboardWidgetHandler csDashboardWidgetHandler, String[] contentUris){
+        assertTrue(csDashboardWidgetHandler.containsContents(contentUris));
     }
 
     /**
      * Checks if the widget contains the specified contents.
-     * @param dashboardWidgetHandler the widget handler to look for the contents
+     * @param csDashboardWidgetHandler the widget handler to look for the contents
      * @param contentUri contents uri to check
      */
-    private void checkContentAppearsInWidget(DashboardWidgetHandler dashboardWidgetHandler, String contentUri){
-        assertTrue(dashboardWidgetHandler.containsContent(contentUri));
+    private void checkContentAppearsInWidget(CSDashboardWidgetHandler csDashboardWidgetHandler, String contentUri){
+        assertTrue(csDashboardWidgetHandler.containsContent(contentUri));
     }
 
     /**

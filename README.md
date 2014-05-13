@@ -1,6 +1,10 @@
 studio-integration-testing
 ==========================
 
+### Warning
+* Refactoring in progress.
+* Refactoring process is currently suspended.
+
 Crafter Studio integration testing framework.
 
 ###Setup

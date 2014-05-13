@@ -6,13 +6,8 @@
 
 package org.craftercms.web.basic;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 import org.craftercms.web.BaseTest;
 import org.craftercms.web.util.CStudioSeleniumUtil;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.openqa.selenium.By;
@@ -24,6 +19,13 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -52,14 +54,9 @@ public class ComponentTest extends BaseTest {
     }
     
     public void setShowInNav(boolean show) {
-        List<WebElement> elements = driver.findElements(By.cssSelector("#acn-active-content .acn-link"));
-        
-        for(WebElement element: elements) {
-    		if(element.getText().equals("Edit")) {
-    			element.click();
-    			break;
-    		}
-    	}
+
+        // Click on Edit link
+        driver.findElement(By.xpath("//*[@id=\"acn-active-content\"]/div[2]/a")).click();
         
         
         new WebDriverWait(driver, 10).until(new ExpectedCondition<Boolean>() {
@@ -116,7 +113,7 @@ public class ComponentTest extends BaseTest {
         //driver.navigate().to(seleniumProperties.getProperty("craftercms.base.url") + aboutPage);
         CStudioSeleniumUtil.navigateToAndWaitForPageToLoad(driver,seleniumProperties.getProperty("craftercms.base.url") + aboutPage);
 
-        CStudioSeleniumUtil.clickOn(driver, By.cssSelector("#acn-preview-tools"));
+        CStudioSeleniumUtil.clickOn(driver, By.cssSelector("#acn-preview-tools-container"));
         
         new WebDriverWait(driver, 10).until(new ExpectedCondition<Boolean>() {
             @Override
